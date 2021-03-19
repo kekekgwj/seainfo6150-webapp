@@ -1,24 +1,41 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Switch, Route } from "react-router-dom";
-import Article from "./Article/Article";
+import DynamicArticle from "./DynamicArticle/DynamicArticle.jsx";
+import ArticleList from "./Article/ArticleList/ArticleList.jsx";
+import { isEmpty } from "lodash";
 
 function App() {
-  return (
+  const [fetchedData, setFetchedData] = useState();
+
+  useEffect(() => {
+    const fetchData = async () => {
+      let responseJson;
+      const response = await fetch(
+        "http://demo1390455.mockable.io/articles"
+      );
+      responseJson = await response.json();
+      setFetchedData(responseJson);
+    };
+
+    if (isEmpty(fetchedData)) {
+      fetchData();
+    }
+  }, [fetchedData]);
+
+  return  (
     <div className="App">
       <Switch>
-        <Route exact path={`/articlelist`}></Route>
         <Route
           exact
           path={`/articlelist/:slug`}
           render={({ match }) => {
-            // getting the parameters from the url and passing
-            // down to the component as props
-            console.log("this slug", match.params.slug)
-            return <div>Component</div>
+            const slug = match.params.slug;
+            const article = fetchedData ? fetchedData[slug] : null;
+            return <DynamicArticle article={article}></DynamicArticle>;
           }}
         />
         <Route>
-          <Article />
+          <ArticleList articles={fetchedData}></ArticleList>
         </Route>
       </Switch>
     </div>
